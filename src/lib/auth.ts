@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/env";
 import type { AppRole } from "@/lib/permissions";
 
 export type AuthenticatedUser = {
@@ -10,6 +11,10 @@ export type AuthenticatedUser = {
 };
 
 export async function requireUser(): Promise<AuthenticatedUser> {
+  if (!isSupabaseConfigured()) {
+    redirect("/login");
+  }
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },

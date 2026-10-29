@@ -6,21 +6,28 @@ import { Button } from "@/components/ui/button";
 import { loginAction } from "@/lib/actions/auth";
 import { getRoleDashboardPath } from "@/lib/auth-helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/env";
 
 export default async function LoginPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
 
-    redirect(profile?.role ? getRoleDashboardPath(profile.role) : "/customer");
+        redirect(profile?.role ? getRoleDashboardPath(profile.role) : "/customer");
+      }
+    } catch {
+      // Continue rendering login form if session check fails
+    }
   }
 
   return (

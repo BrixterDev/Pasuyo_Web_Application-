@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { registerAction } from "@/lib/actions/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getRoleDashboardPath } from "@/lib/auth-helpers";
+import { isSupabaseConfigured } from "@/lib/env";
 
 export default async function RegisterPage({
   searchParams,
@@ -15,19 +16,25 @@ export default async function RegisterPage({
   const params = await searchParams;
   const selectedRole = params.role ?? "customer";
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
 
-    redirect(profile?.role ? getRoleDashboardPath(profile.role) : "/customer");
+        redirect(profile?.role ? getRoleDashboardPath(profile.role) : "/customer");
+      }
+    } catch {
+      // Continue rendering register form if session check fails
+    }
   }
 
   return (
