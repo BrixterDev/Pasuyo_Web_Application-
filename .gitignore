@@ -1,0 +1,77 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env*
+!.env.example
+
+# Local credentials, certificates, and cloud-service secrets
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+service-account*.json
+firebase-adminsdk-*.json
+google-credentials.json
+
+# Supabase local CLI state and generated types
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+supabase/.env.*
+supabase/types/
+
+# Local databases, backups, and exports
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+
+# Local tool and IDE files
+.vscode/
+.idea/
+.fleet/
+.turbo/
+.swc/
+
+# local development
+*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

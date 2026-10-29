@@ -1,0 +1,30 @@
+project_id = "pasuyo-local"
+
+[api]
+port = 54321
+schemas = ["public", "storage", "auth"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+shadow_port = 54322
+port = 54322
+
+[db.pooler]
+enabled = false
+
+[studio]
+port = 54323
+
+[inbucket]
+port = 54324
+
+[storage]
+file_size_limit = "50MiB"
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**"]
+
+[auth.email]
+minimum_password_length = 8

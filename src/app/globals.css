@@ -1,0 +1,109 @@
+@import "leaflet/dist/leaflet.css";
+@import "tailwindcss";
+
+:root {
+  --background: #f5f7f6;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --muted: #64748b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 640px) {
+  button, a[role="button"] {
+    min-height: 42px;
+  }
+}
+
+button, a {
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+button:active, a:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.pasuyo-map-icon {
+  background: transparent;
+  border: 0;
+}
+
+.pasuyo-map-pin {
+  display: grid;
+  width: 34px;
+  height: 42px;
+  place-items: center;
+  border: 2px solid white;
+  border-radius: 50% 50% 50% 0;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 8px rgb(15 23 42 / 25%);
+}
+
+.pasuyo-map-pin > span {
+  transform: rotate(45deg);
+}
+
+.pasuyo-map-pin--seller {
+  background: #15803d;
+}
+
+.pasuyo-map-pin--customer {
+  background: #d97706;
+}
+
+.pasuyo-map-pin--rider {
+  background: #0369a1;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
