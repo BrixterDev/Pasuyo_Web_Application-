@@ -9,13 +9,24 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "26mb",
     },
   },
-  images: supabaseUrl
-    ? {
-        remotePatterns: [
-          new URL(`${supabaseUrl}/storage/v1/object/public/product-images/**`),
-        ],
-      }
-    : undefined,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      ...(supabaseUrl
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: new URL(supabaseUrl).hostname,
+              pathname: "/storage/v1/object/public/**",
+            },
+          ]
+        : []),
+    ],
+  },
 };
 
 export default nextConfig;

@@ -15,13 +15,28 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
+function getMetadataBase(): URL {
+  const rawUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!rawUrl) {
+    return new URL("http://localhost:3000");
+  }
+  try {
+    const withProtocol = rawUrl.startsWith("http://") || rawUrl.startsWith("https://")
+      ? rawUrl
+      : `https://${rawUrl}`;
+    return new URL(withProtocol);
+  } catch {
+    return new URL("http://localhost:3000");
+  }
+}
+
 export const metadata: Metadata = {
   title: {
     default: "Pasuyo — Local Marketplace & Delivery",
     template: "%s | Pasuyo",
   },
   description: "Connect local customers, sellers, and riders through a secure marketplace and delivery experience.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: getMetadataBase(),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
