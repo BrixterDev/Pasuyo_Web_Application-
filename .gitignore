@@ -1,77 +1,81 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies
+node_modules/
+/.pnpm-store
+.pnp
+.pnp.js
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Environment variables & secrets (CRITICAL: Do NOT commit secrets)
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+!.env.example
+!.env.template
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
+# Credentials, keys & certificates
 *.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+credentials.json
+serviceAccountKey.json
+.npmrc
+.yarnrc
 
-# debug
+# Supabase local secrets & CLI temp files
+supabase/.temp/
+supabase/.branches/
+.supabase/
+
+# Next.js build output & cache
+.next/
+out/
+build/
+dist/
+
+# TypeScript cache
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# Vercel & Turborepo
+.vercel
+.turbo
+
+# Logs & debugging
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
 
-# env files
-.env*
-!.env.example
+# Testing & Coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
 
-# Local credentials, certificates, and cloud-service secrets
-*.key
-*.p12
-*.pfx
-*.crt
-*.cer
-*.der
-service-account*.json
-firebase-adminsdk-*.json
-google-credentials.json
+# Operating System & IDE metadata
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
 
-# Supabase local CLI state and generated types
-supabase/.temp/
-supabase/.branches/
-supabase/.env
-supabase/.env.*
-supabase/types/
-
-# Local databases, backups, and exports
-*.sqlite
-*.sqlite3
-*.db
-*.dump
-*.sql.gz
-
-# Local tool and IDE files
-.vscode/
+# Editors
 .idea/
-.fleet/
-.turbo/
-.swc/
-
-# local development
-*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak

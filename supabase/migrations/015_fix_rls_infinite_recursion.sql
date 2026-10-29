@@ -62,3 +62,4 @@ on public.profiles for select
 using (
   public.is_seller_of_customer(auth.uid(), profiles.id)
 );
+
