@@ -1,12 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { getSupabaseEnv } from "./lib/env";
+import { isSupabaseConfigured, getSupabaseEnv } from "./lib/env";
 
 export async function proxy(request: NextRequest) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.next({ request });
+  }
+
   const { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY } = getSupabaseEnv();
   if (!NEXT_PUBLIC_SUPABASE_URL || !NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error("Supabase server configuration is incomplete.");
+    return NextResponse.next({ request });
   }
 
   let response = NextResponse.next({ request });
