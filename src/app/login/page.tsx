@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, LockKeyhole, Mail } from "lucide-react";
+import { ArrowLeft, LockKeyhole, Mail, AlertCircle } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,20 @@ import { getRoleDashboardPath } from "@/lib/auth-helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 
-export default async function LoginPage() {
+const ERROR_MESSAGES: Record<string, string> = {
+  missing_fields: "Please enter your email and password.",
+  invalid_credentials: "Incorrect email or password. Please try again.",
+  profile_not_found: "Your account profile could not be found.",
+  db_not_configured: "The server is not connected to the database. Please contact support.",
+};
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   if (isSupabaseConfigured()) {
     try {
       const supabase = await createSupabaseServerClient();
@@ -25,10 +38,17 @@ export default async function LoginPage() {
 
         redirect(profile?.role ? getRoleDashboardPath(profile.role) : "/customer");
       }
-    } catch {
-      // Continue rendering login form if session check fails
+    } catch (err: unknown) {
+      // Re-throw redirect errors so Next.js can handle them
+      if (err && typeof err === "object" && "digest" in err) {
+        const digest = (err as { digest: string }).digest;
+        if (digest?.startsWith("NEXT_REDIRECT")) throw err;
+      }
+      // Otherwise continue rendering login form
     }
   }
+
+  const errorMessage = error ? ERROR_MESSAGES[error] : null;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6">
@@ -38,6 +58,14 @@ export default async function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700"><LockKeyhole className="h-6 w-6" aria-hidden="true" /></div>
           <h1 className="mt-5 text-3xl font-bold tracking-tight">Welcome back</h1>
           <p className="mt-2 text-sm text-slate-500">Sign in to continue to your Pasuyo account.</p>
+
+          {errorMessage && (
+            <div className="mt-4 flex items-start gap-2 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <form action={loginAction} className="mt-7 space-y-4">
             <label className="block text-sm font-medium text-slate-700" htmlFor="email">Email address
               <div className="mt-1 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 focus-within:border-emerald-500 focus-within:bg-white">

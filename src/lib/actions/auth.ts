@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/env";
 import type { AppRole } from "@/lib/permissions";
 import { getRoleDashboardPath } from "@/lib/auth-helpers";
 
@@ -16,14 +17,18 @@ export async function loginAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect("/login");
+    redirect("/login?error=missing_fields");
+  }
+
+  if (!isSupabaseConfigured()) {
+    redirect("/login?error=db_not_configured");
   }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    redirect("/login");
+    redirect("/login?error=invalid_credentials");
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -33,7 +38,7 @@ export async function loginAction(formData: FormData) {
     .maybeSingle();
 
   if (profileError || !profile) {
-    redirect("/login");
+    redirect("/login?error=profile_not_found");
   }
 
   redirect(getRoleDashboardPath(profile.role as AppRole));
@@ -49,6 +54,10 @@ export async function registerAction(formData: FormData) {
 
   if (!firstName || !lastName || !email || !password) {
     redirect("/register?role=" + role);
+  }
+
+  if (!isSupabaseConfigured()) {
+    redirect("/register?role=" + role + "&error=db_not_configured");
   }
 
   const supabase = await createSupabaseServerClient();
@@ -110,6 +119,9 @@ export async function registerAction(formData: FormData) {
 }
 
 export async function logoutAction() {
+  if (!isSupabaseConfigured()) {
+    redirect("/");
+  }
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/");
