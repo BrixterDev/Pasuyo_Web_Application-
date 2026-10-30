@@ -1,6 +1,6 @@
 # Pasuyo — Updates & Deployment Changelog
 
-This document summarizes all architectural fixes, UI/UX restorations, security hardening, and deployment resolutions applied to the **Pasuyo** platform (Next.js 16, React 19, Tailwind CSS v4, Supabase, Vercel, and GitHub).
+This document summarizes all architectural fixes, UI/UX restorations, security hardening, server action resiliency, and deployment resolutions applied to the **Pasuyo** platform (Next.js 16, React 19, Tailwind CSS v4, Supabase, Vercel, and GitHub).
 
 ---
 
@@ -106,7 +106,7 @@ Minified React error #419
 
 ### Root Cause
 React masks production server exceptions as `#441` ("An error occurred in the Server Components render") and `#419` ("The server could not finish this Suspense boundary"). Several runtime exceptions triggered this:
-1. **Metadata URL Parsing**: `metadataBase: new URL(...)` in `src/app/layout.tsx` threw `TypeError: Invalid URL` if `NEXT_PUBLIC_SITE_URL` was entered without the `https://` protocol (e.g. `pasuyo-sepia.vercel.app`).
+1. **Metadata URL Parsing**: `metadataBase: new URL(...)` in `src/app/layout.tsx` threw `TypeError: Invalid URL` if `NEXT_PUBLIC_SITE_URL` was entered without the `https://` protocol (e.g. `pasuyo-web-application.vercel.app`).
 2. **Zod URL Validation**: `z.string().url()` in `src/lib/env.ts` threw uncaught validation errors for domain-only URLs.
 3. **Supabase Image Remote Patterns**: In `next.config.ts`, `images.remotePatterns` was undefined if `NEXT_PUBLIC_SUPABASE_URL` was not present at build time, causing Next.js `<Image>` to reject Supabase storage URLs.
 4. **Auth Page Server Components**: `src/app/login/page.tsx`, `src/app/register/page.tsx`, and `requireUser()` in `src/lib/auth.ts` threw unhandled errors during server rendering when attempting to query an unconfigured Supabase instance.
@@ -136,7 +136,42 @@ React masks production server exceptions as `#441` ("An error occurred in the Se
 
 ---
 
-## 5. Deployment Guide: GitHub + Vercel + Supabase
+## 5. Server Action & Auth Resiliency
+
+### Issue
+Submitting the login form on an unconfigured Vercel instance threw an unhandled server-side error ("Internal Server Error"). Additionally, Next.js redirect calls inside server components were swallowed by try/catch blocks.
+
+### Solutions Applied
+1. **Server Action Guard (`src/lib/actions/auth.ts`)**:
+   - Added `isSupabaseConfigured()` check in `loginAction`, `registerAction`, and `logoutAction`.
+   - Replaced crashes with graceful redirect params (`/login?error=db_not_configured`, `/login?error=invalid_credentials`).
+2. **Proxy Cookie Signature Fix (`src/proxy.ts`)**:
+   - Corrected `@supabase/ssr` `setAll` implementation by removing the invalid secondary `headers` argument.
+3. **Login Feedback & Redirect Re-throw (`src/app/login/page.tsx`)**:
+   - Added user-facing alert box for action errors (`?error=...`).
+   - Re-throws internal `NEXT_REDIRECT` errors so Next.js redirection continues to function properly within Server Components.
+
+---
+
+## 6. Database Cleanup & Clean State Initialization
+
+### Requirement
+Reset all user accounts, transactions, and test data to a pristine state while keeping all database functions, triggers, table schemas, RLS policies, and storage buckets intact.
+
+### Solutions Applied
+1. **Automated Node.js Cleaner (`scripts/clean-database.js`)**:
+   - Automatically parses `.env.local` without external dependencies.
+   - Recursively clears all uploaded files inside the Supabase Storage `product-images` bucket using the Supabase Storage API.
+   - Cleans 17 public tables in strict foreign-key order:
+     `notifications` → `ratings` → `order_status_history` → `rider_locations` → `order_items` → `orders` → `cart_items` → `carts` → `favorites` → `search_history` → `product_images` → `products` → `categories` → `customer_addresses` → `seller_profiles` → `rider_profiles` → `profiles`.
+   - Deletes all registered users in Supabase Auth via `supabase.auth.admin.deleteUser`.
+2. **Reproducible SQL Script (`supabase/clean_database.sql`)**:
+   - Provides a one-click `TRUNCATE TABLE ... CASCADE` and `DELETE FROM auth.users` query for the Supabase SQL Editor.
+   - Complies with Supabase's `storage.protect_delete()` trigger by directing storage file removals through the Storage API or Dashboard.
+
+---
+
+## 7. Deployment Guide: GitHub + Vercel + Supabase
 
 To run Pasuyo in production:
 
@@ -146,16 +181,17 @@ git add .
 git commit -m "feat: configure styles, security rules, and deployment resiliency"
 git push origin main
 ```
+*Current repository remote:* `https://github.com/BrixterDev/Pasuyo_Web_Application-.git`
 
 ### Step 2: Configure Environment Variables in Vercel
-In your **Vercel Dashboard** → **Pasuyo** → **Settings** → **Environment Variables**, add the following:
+In your **Vercel Dashboard** → **`pasuyo-web-application`** → **Settings** → **Environment Variables**, add the following:
 
 | Variable Name | Description | Example / Source |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL | `https://your-project.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL | `https://ywrwhuibxlwjjzvzjttq.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Public Anonymous Key | `eyJhbGciOi...` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Private Service Role Key | `eyJhbGciOi...` |
-| `NEXT_PUBLIC_SITE_URL` | Deployed Domain | `https://pasuyo-sepia.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | Deployed Domain | `https://pasuyo-web-application.vercel.app` |
 
 *Ensure **Production**, **Preview**, and **Development** checkboxes are selected.*
 
